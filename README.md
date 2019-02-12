@@ -1,15 +1,22 @@
 # keras_tta
-Simple test time augmentation (TTA) for keras python library.
-
-So far the wrapper flips the images horizontally and vertically and averages the predictions of all flipped images.
-
->The intuition behind this is that even if the test image is not too easy to make a prediction, the transformations change it such that the model has higher chances of capturing the target shape and predicting accordingly.
+这是一个TTA流程案例，可以自己指定TTA增强数量
 
 
-### Example:
+### 使用方式:
 
 ```python
-tta_model = TTA_ModelWrapper(model)
+# 数据增强
+datagen = ImageDataGenerator(
+    featurewise_center=True,
+    featurewise_std_normalization=True,
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    horizontal_flip=True)
+# 传入部分数据
+datagen.fit(Train——Immage)
 
-predictions = tta_model.predict(X_test)
+tta_model = TTA_ModelWrapper(model,datagen )
+
+predictions = tta_model.predict(X_test,4)
 ```
