@@ -1,38 +1,29 @@
 import numpy as np
 
-
 class TTA_ModelWrapper():
-    """A simple TTA wrapper for keras computer vision models.
-
-    Args:
-        model (keras model): A fitted keras model with a predict method.
-    """
-
-    def __init__(self, model):
+    def __init__(self, model, datagen):
+        '''
+        :param model: 模型
+        :param datagen: 数据增强
+        '''
         self.model = model
+        self.datagen = datagen
 
-    def predict(self, X):
-        """Wraps the predict method of the provided model.
-        Augments the testdata with horizontal and vertical flips and
-        averages the results.
-
-        Args:
-            X (numpy array of dim 4): The data to get predictions for.
-        """
-
+    def predict(self, X, pre_num):
+        '''
+        :param X: Test数据
+        :param pre_num: TTA数量
+        :return:
+        '''
+#         self.datagen.fit(X)
         pred = []
-        for x_i in X:
-            p0 = self.model.predict(self._expand(x_i[:, :, 0]))
-            p1 = self.model.predict(self._expand(np.fliplr(x_i[:, :, 0])))
-            p2 = self.model.predict(self._expand(np.flipud(x_i[:, :, 0])))
-            p3 = self.model.predict(self._expand(np.fliplr(np.flipud(x_i[:, :, 0]))))
-            p = (p0 +
-                 self._expand(np.fliplr(p1[0][:, :, 0])) +
-                 self._expand(np.flipud(p2[0][:, :, 0])) +
-                 self._expand(np.fliplr(np.flipud(p3[0][:, :, 0])))
-                 ) / 4
-            pred.append(p)
-        return np.array(pred)
-
-    def _expand(self, x):
-        return np.expand_dims(np.expand_dims(x, axis=0), axis=3)
+        P = 0
+        for i, tta in enumerate(self.datagen.flow(X, None, batch_size=1)):
+            if i == 0:
+                P += self.model.predict(X)
+            else:
+                P = np.add(P, self.model.predict(tta))
+            if i == pre_num - 1:
+                break
+        P = P / pre_num
+        return P
